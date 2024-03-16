@@ -1,0 +1,455 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap');
+
+/**
+page classes
+***/
+
+.musicly_container{
+    padding:15px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+} 
+* > :not(.modal) {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Roboto', sans-serif;
+}
+
+.musicly_underprogress{
+    border:none;
+    border-radius: 10px;
+    height: 10px; 
+    background: transparent;
+    
+}
+
+.musicly_underprogress::-webkit-progress-bar{
+    background: transparent;
+    height: 12px;
+    border-radius: 10px;
+    color: transparent;
+}
+
+.musicly_underprogress::-webkit-progress-value{
+    background: white;
+    color:white
+}
+
+.search_input{
+    padding: 10px;
+    border: 1px solid #dddddd;
+    border-radius:9999px;
+    width: 100%;
+    position: absolute;
+    margin-bottom: 5rem;
+    top:0;
+    height: 40px;
+    background: white;
+    font-size:16px
+}
+
+/**
+detect standalone mode
+**/
+@media (display-mode: standalone) {
+    .search_input{
+        padding:14px 20px;
+        font-size: large;
+    }
+}
+.search_input:focus{
+    outline: none;
+}
+/**
+page utilities
+***/
+.btn{
+    margin: 5px;
+    border: none;
+    padding: 10px 20px;
+}
+
+.list-none{
+    list-style: none;
+}
+.capitalize{
+    text-transform: capitalize;
+}
+
+.flex{
+    display: flex;
+}
+.flex-col{
+    flex-direction: column;
+}
+.grid{
+    display: grid;
+
+}
+.grid-cols-4{
+    grid-template-columns: repeat(4, 1fr);
+}
+.gap-1{
+    gap: 0.25rem;
+}
+.gap-2{
+    gap: 0.5rem;
+
+}
+.gap-5{
+    gap: 1.25rem;
+
+}
+.rounded-full{
+    border-radius: 99999px;
+}
+
+.banner{ 
+    background: #f5f5f5;
+    padding: 20px; 
+    width: 100%; 
+    max-width: 100%;
+}
+.w-5{
+    width: 25px;
+}
+.w-3{
+    width: 15px;
+}
+.w-4{
+    width: 20px;
+
+}
+.font-bold{
+    font-weight: bold;
+
+}
+.w-20{
+    width: 5rem;
+
+}
+.h-20{
+    height: 5rem;
+}
+.w-9{
+    width: 2.25rem;
+}
+
+/**
+margins
+**/
+
+.mt-1{
+    margin-top: 0.25rem;
+}
+
+
+.mt-12{
+    margin-top: 3rem !important;
+
+
+}
+
+.mt-2{
+    margin-top: 0.5rem;
+}
+
+.mt-5{
+    margin-top: 1.25rem;
+}
+
+.mb-5{
+    margin-bottom: 1.25rem;
+
+}
+.mb-12{
+    margin-bottom: 3rem !important;
+
+}
+.mb-16{
+    margin-bottom: 5rem !important;
+
+}
+.center{
+    text-align: center;
+
+}
+.items-center{
+    align-items: center;
+    text-align: center;
+    gap: 0.5rem;
+}
+/**
+positions
+**/
+.top-0{
+    top: 0;
+
+}
+.bottom-0{
+    bottom: 0;
+}
+.left-0{
+    left: 0;
+}
+.right-0{
+    right: 0;
+}
+.fixed{
+    position: fixed;
+}
+.h-full{
+    height: 100%; 
+}
+ /**
+ text sizes
+    **/
+    .text-sm{
+        font-size: 0.75rem;
+    }
+    .text-base{
+        font-size: 1rem;
+    }
+    .text-md{
+        font-size: 1.125rem;
+    }
+    .text-lg{
+        font-size: large;
+    }
+    .text-xl{
+        font-size: x-large;
+    }
+    .text-2xl{
+        font-size: xx-large;
+    }
+    .text-3xl{
+        font-size: 2rem;
+    }
+    .text-4xl{
+        font-size: 2.5rem;
+    }
+    .text-5xl{
+        font-size: 3rem;
+    }
+/**
+colors
+**/
+.bg-transparent{
+    background: transparent;
+}
+.outline-orange{
+    border: 1px solid #ff7f50;
+    color: #ff7f50;
+}
+.fill-orange{
+    fill: #ff7f50; 
+    stroke: #ff7f50;
+}
+.stroke-orange{
+    stroke: #ff7f50;
+}
+/**
+navbar
+**/
+.navbar{
+    border-top: 1px solid #eeeeee;
+    color: #fff; 
+    position:fixed;
+    bottom: 0;
+    z-index: 9999;
+    left: 0;
+    width: 100%;
+    max-width: 100%; 
+    padding: 25px;
+    background: #fff;
+    margin-top: 20px;
+  } 
+  .navbar ul{ 
+    display: flex;
+    justify-content: space-between;
+    list-style: none;     
+    margin: 5px;
+  }
+   /*detect pwa*/
+    @media (display-mode: standalone) {
+        
+    }
+    .navbar ul li a{
+        color: #000;
+        text-decoration: none;
+    }
+    .navbar ul li a:hover{
+        color: #333;
+    }
+    .w-6{
+        width: 30px;
+    }
+  
+
+    /**
+    song card
+    **/
+
+    .song_thumbnail{
+        width: 50px;
+        height: 50px;
+        max-width: 100%; 
+        object-fit: cover; 
+    }
+
+    .song_card{
+        display: flex;
+        flex-direction: row ;
+        gap: 1rem;
+        margin-bottom: 10px;
+    }
+
+    .musicly_song_data h3{
+        font-size: 1.25rem;
+    }
+    .musicly_song_data p{
+        font-size: 1rem;
+    }
+    .musicly_container{
+        padding: 9px;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+    .musicly_song_data{
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+.modal{  
+    height: 100%;
+    transition: all 0.7s ease-in-out;
+    position: fixed;
+    border: none;
+    background-color: white; 
+    top:  0;
+    left: 0; 
+    bottom: 0;
+    z-index: 9999;
+    max-width: 100%;
+    right: 0;
+    padding: 15px;
+}
+.w-full{
+    width: 100%;
+
+}
+
+.p-5{
+    padding: 1.25rem;
+
+}
+.p-2{
+    padding: 0.5rem;
+
+}
+.justify-between{
+    justify-content: space-between;
+}
+
+.hero{
+    margin:0;
+    padding:0;
+    align-items: center;
+    display: flex; 
+}
+.modal-title{
+    margin-top: 10px;
+    font-size: 1.5rem;
+}
+
+.modal_image{
+    width: 100%; 
+    max-width: 100%;
+    height: 100%; 
+    object-fit: cover;
+    border-radius: 5px;
+}
+
+.mt-6{
+    margin-top: 1.5rem;
+
+}
+.modal::backdrop{
+    background-color: transparent;
+}
+
+.slider{
+    background:  #fff;
+    width: 100%;
+    max-width: 100%; 
+    accent-color: #ffff;
+    height: 100%;
+    
+  transition: background 450ms ease-in;
+    object-fit: cover;
+    border-radius: 10px;
+}
+
+.slider:focus{
+    outline: none;
+}
+
+.slider::-webkit-slider-thumb{  
+    margin-top: -5px; 
+    background: #000;
+    cursor: pointer;
+}
+.slider::-moz-range-thumb{
+    width: 2px;
+    border-radius: 50%; 
+    
+    cursor: pointer;
+}
+input[type=range]:focus { 
+    outline: none; /* Removes the blue border. You should probably do some kind of focus styling for accessibility reasons though. */
+     border: none;
+  }
+ 
+.slider::-webkit-slider-runnable-track{
+    width: 100%;
+    height: 5px;  
+    background: #d2d2d2;
+    border-radius: 5px;;
+    border-color: #fff;
+    border: none;
+}
+
+/**
+handle themes
+**/
+
+@media (prefers-color-scheme: dark) {
+    body {
+      background-color: #121212;
+      color: #fff;
+    }
+    svg{
+        fill: #fff;
+    }
+    .navbar{
+        transition: all ease-in-out 0.6s;
+        background: #121212;
+        border-top: 1px solid #333;
+        color: #fff;
+    }
+    .navbar ul li a{
+        color: #fff;
+    }
+    .modal{
+        background: #121212;
+        color: #fff;
+    }
+  }
+ 
+
+ 
