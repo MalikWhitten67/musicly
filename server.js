@@ -9,7 +9,7 @@ import yts from 'yt-search'
 const app = express();
 
 const urls = {
-    main: 'https://dangerous-duck-79.telebit.io'
+    main: 'https://musicly-18vj.onrender.com/'
 }
 let imageCache = {};
 app.use(cors());
@@ -78,10 +78,9 @@ app.get('/stream', async (req, res) => {
 
    
 });
-
-app.use(express.static('./')); 
+ 
 app.get('/', (req,res) => {
-    res.sendFile(path.join(process.cwd(), 'pages', 'index.html'));
+    res.json({timestamp:Date.now()})
 })
  
 app.get('/audiofiles/:filename', (req, res) => {
