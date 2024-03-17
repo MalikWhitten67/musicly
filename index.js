@@ -16,31 +16,53 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
   
- app.get('/trending/:playlist', async (req, res) => {
+app.get('/playlist/:playlist', async (req, res) => {
     const { playlist } = req.params; 
+    function handleVideos(videos){
+        return videos.map((video) => { 
+            console.log(video)
+            let data = {
+                url:  `${urls.main}/stream?url=${`https://www.youtube.com/watch?v=${video.videoId}`} `,
+                title: video.title,
+                id: video.videoId, 
+                thumbnail: `${urls.main}/serveImage?url=${video.thumbnail.replace('hqdefault', 'hq720')}`,
+                description: video.description,
+                duration: video.duration.seconds,
+                views: video.views,
+                age: video.ago,
+                artist: video.author.name,
+                artistUrl: video.author.url
+            }  
+            return data;
+        });
+    }
     switch(playlist){
-        case 'general': 
+        case '1': 
+        // trending songs
+             if(cachedResults['trending']){
+                return res.json(cachedResults['trending']);
+            }
             const list = await yts( { listId: 'PL3-sRm8xAzY9gpXTMGVHJWy_FMD67NBed' } )
-            list.videos = list.videos.map((video) => { 
-                let data = {
-                    url:  `${urls.main}/stream?url=${`https://www.youtube.com/watch?v=${video.videoId}`} `,
-                    title: video.title,
-                    id: video.videoId, 
-                    thumbnail: `${urls.main}/serveImage?url=${video.thumbnail.replace('hqdefault', 'hq720')}`,
-                    description: video.description,
-                    duration: video.timestamp,
-                    views: video.views,
-                    age: video.ago,
-                    artist: video.author.name,
-                    artistUrl: video.author.url
-                }  
-                return data;
-            });
-            res.json(list.videos);
+            cachedResults['trending'] = handleVideos(list.videos);
+            res.json(handleVideos(list.videos));
             break;
-        case 'rap':
+        case '2': 
+            // rap
+            if(cachedResults['rap']){
+                return res.json(cachedResults['rap']);
+            }
             const rap = await yts({ listId: 'PL3-sRm8xAzY-556lOpSGH6wVzyofoGpzU'}) 
-            res.json(rap.videos);
+            cachedResults['rap'] = handleVideos(rap.videos);
+            res.json(handleVideos(rap.videos));
+            break;
+        case '3':
+            // blues
+            if(cachedResults['blues']){
+                return res.json(cachedResults['blues']);
+            }
+            const rhythm = await yts({ listId: 'PLDIoUOhQQPlVFjmZnM41bOzoowjfTS4wU'}) 
+            cachedResults['blues'] = handleVideos(rhythm.videos);
+            res.json(handleVideos(rhythm.videos));
             break;
     }
 })
@@ -109,11 +131,6 @@ app.get('/', (req,res) => {
     res.json({timestamp:Date.now()})
 })
  
-app.get('/audiofiles/:filename', (req, res) => {
-    const { filename } = req.params;
-    res.setHeader('Content-Type', 'audio/mpeg');
-    res.sendFile(path.join(process.cwd(), 'audiofiles', filename));
-})
  
 app.get('/', (req, res) => {
     res.json({ message: 'Hello!'});
@@ -141,8 +158,7 @@ app.get('/search', async (req, res) => {
     const { query } = req.query;
     if (!query) {
         return res.status(400).send('Query is required');
-    }
-    console.log(`Received search query: ${query}    `)
+    } 
     if (Object.keys(cachedResults).includes(query.toLowerCase())) {
         let matching = Object.keys(cachedResults).filter((key) => key.includes(query.toLowerCase()));
         let results = matching.map((key) => cachedResults[key]);
@@ -163,13 +179,19 @@ app.get('/search', async (req, res) => {
         if(video.title.length > 50){
             video.title = video.title.slice(0, 50);
         }
+    // exclude non-registered artists
+        let artist = video.author.name.toLowerCase();
+        if(!registeredArtists.includes(artist)){
+             console.log('poor selection')
+        }
+        
         let data = {
             url:  `${urls.main}/stream?url=${video.url}`,
             title: video.title,
             id: video.videoId, 
             thumbnail: `${urls.main}/serveImage?url=${video.image.replace('hqdefault', 'hq720')}`,
             description: video.description,
-            duration: video.timestamp,
+            duration: video.duration.seconds,
             views: video.views,
             age: video.ago,
             artist: video.author.name,
@@ -177,6 +199,8 @@ app.get('/search', async (req, res) => {
         } 
         return data;
     })
+    // remove nulls
+    results.videos = results.videos.filter((video) => video !== undefined);
     cachedResults[query.toLowerCase()] = results.videos;
     res.json(results.videos);
 })
