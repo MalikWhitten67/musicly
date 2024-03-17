@@ -9,7 +9,7 @@ import yts from 'yt-search'
 const app = express();
 
 const urls = {
-    main: 'https://dangerous-duck-79.telebit.io'
+    main: 'https://musiclyapp.vercel.app'
 }
 let imageCache = {};
 app.use(cors());
