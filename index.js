@@ -16,7 +16,34 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
   
- 
+ app.get('/trending/:playlist', async (req, res) => {
+    const { playlist } = req.params; 
+    switch(playlist){
+        case 'general': 
+            const list = await yts( { listId: 'PL3-sRm8xAzY9gpXTMGVHJWy_FMD67NBed' } )
+            list.videos = list.videos.map((video) => { 
+                let data = {
+                    url:  `${urls.main}/stream?url=${`https://www.youtube.com/watch?v=${video.videoId}`} `,
+                    title: video.title,
+                    id: video.videoId, 
+                    thumbnail: `${urls.main}/serveImage?url=${video.thumbnail}`,
+                    description: video.description,
+                    duration: video.timestamp,
+                    views: video.views,
+                    age: video.ago,
+                    artist: video.author.name,
+                    artistUrl: video.author.url
+                }  
+                return data;
+            });
+            res.json(list.videos);
+            break;
+        case 'rap':
+            const rap = await yts({ listId: 'PL3-sRm8xAzY-556lOpSGH6wVzyofoGpzU'}) 
+            res.json(rap.videos);
+            break;
+    }
+})
 // Endpoint to serve image
 app.get('/serveImage', async (req, res) => {
     const { url } = req.query;
