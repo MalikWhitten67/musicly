@@ -70,6 +70,7 @@ app.use(express.urlencoded({ extended: true }));
     'chris brown',
     'megan thee stallion',
 ]
+ 
 app.get('/playlist/:playlist', async (req, res) => {
     const { playlist } = req.params; 
     function handleVideos(videos){
@@ -90,52 +91,62 @@ app.get('/playlist/:playlist', async (req, res) => {
             return data;
         });
     }
+    let result;
     switch(playlist){
         case '1': 
-        // trending songs
-             if(cachedResults['trending']){
-                return res.json(cachedResults['trending']);
+            // trending songs
+            if(cachedResults['trending']){
+                result = cachedResults['trending'];
+            } else {
+                const list = await yts( { listId: 'PL3-sRm8xAzY9gpXTMGVHJWy_FMD67NBed' } )
+                cachedResults['trending'] = handleVideos(list.videos);
+                result = handleVideos(list.videos);
             }
-            const list = await yts( { listId: 'PL3-sRm8xAzY9gpXTMGVHJWy_FMD67NBed' } )
-            cachedResults['trending'] = handleVideos(list.videos);
-            res.json(handleVideos(list.videos));
             break;
         case '2': 
             // rap
             if(cachedResults['rap']){
-                return res.json(cachedResults['rap']);
+                result = cachedResults['rap'];
+            } else {
+                const rap = await yts({ listId: 'PL3-sRm8xAzY-556lOpSGH6wVzyofoGpzU'}) 
+                cachedResults['rap'] = handleVideos(rap.videos);
+                result = handleVideos(rap.videos);
             }
-            const rap = await yts({ listId: 'PL3-sRm8xAzY-556lOpSGH6wVzyofoGpzU'}) 
-            cachedResults['rap'] = handleVideos(rap.videos);
-            res.json(handleVideos(rap.videos));
             break;
         case '3':
             // blues
             if(cachedResults['blues']){
-                return res.json(cachedResults['blues']);
+                result = cachedResults['blues'];
+            } else {
+                const rhythm = await yts({ listId: 'PLDIoUOhQQPlVFjmZnM41bOzoowjfTS4wU'}) 
+                cachedResults['blues'] = handleVideos(rhythm.videos);
+                result = handleVideos(rhythm.videos);
             }
-            const rhythm = await yts({ listId: 'PLDIoUOhQQPlVFjmZnM41bOzoowjfTS4wU'}) 
-            cachedResults['blues'] = handleVideos(rhythm.videos);
-            res.json(handleVideos(rhythm.videos));
             break;
         case '4':
             // pop
             if(cachedResults['pop']){
-                return res.json(cachedResults['pop']);
+                result = cachedResults['pop'];
+            } else {
+                const pop = await yts({ listId: 'PLMC9KNkIncKtPzgY-5rmhvj7fax8fdxoj'})
+                cachedResults['pop'] = handleVideos(pop.videos);
+                result = handleVideos(pop.videos);
             }
-            const pop = await yts({ listId: 'PLMC9KNkIncKtPzgY-5rmhvj7fax8fdxoj'})
-            cachedResults['pop'] = handleVideos(pop.videos);
-            res.json(handleVideos(pop.videos));
             break;
         case '5':
+            // hiphop90s
             if(cachedResults['hiphop90s']){
-                return res.json(cachedResults['hiphop90s']);
+                result = cachedResults['hiphop90s'];
+            } else {
+                const hiphop90s = await yts({ listId: 'PLxA687tYuMWgEVasBziZoZ1Bk7JLnu-Rf'})
+                cachedResults['hiphop90s'] = handleVideos(hiphop90s.videos);
+                result = handleVideos(hiphop90s.videos);
             }
-            const hiphop90s = await yts({ listId: 'PLxA687tYuMWgEVasBziZoZ1Bk7JLnu-Rf'})
-            cachedResults['hiphop90s'] = handleVideos(hiphop90s.videos);
-            res.json(handleVideos(hiphop90s.videos));
             break;
+        default:
+            return res.status(404).send('Playlist not found');
     }
+    res.json(result);
 })
 // Endpoint to serve image
 app.get('/serveImage', async (req, res) => {
