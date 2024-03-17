@@ -16,17 +16,13 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
   
-
-app.use(function(req, res, next) {
-    res.setHeader('Access-Control-Allow-Origin', '*'); // Change * to specific origins if needed
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
-    res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-    next();
-});
-
+ 
 // Endpoint to serve image
 app.get('/serveImage', async (req, res) => {
     const { url } = req.query;
+    res.setHeader('Access-Control-Allow-Origin', '*'); // Change * to specific origins if needed
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+    res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
     if (!url) {
         return res.status(400).send('URL is required');
     }
@@ -61,7 +57,9 @@ app.get('/serveImage', async (req, res) => {
     }
 });
 app.get('/stream', async (req, res) => {
-    res.setHeader('Access-Control-Allow-Origin', '*')
+    res.setHeader('Access-Control-Allow-Origin', '*') 
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+    res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
     try {
         const videoUrl = req.query.url;
         const videoInfo = await ytdl.getInfo(videoUrl);
