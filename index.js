@@ -158,17 +158,17 @@ app.get('/serveImage', async (req, res) => {
             throw new Error('Invalid content type, must be an image');
         }
 
+        res.setHeader('Content-Type', contentType);
+        res.setHeader('Cache-Control', 'public, max-age=31536000');
+        res.setHeader('Expires', new Date(Date.now() + 31536000000).toUTCString());
+        res.setHeader('Last-Modified', new Date().toUTCString());
         if (imageCache[url]) {
             res.setHeader('Content-Type', contentType);
             res.send(imageCache[url]);
             return;
         }
 
-        const imageBuffer = await imageResponse.arrayBuffer();
-        res.setHeader('Content-Type', contentType);
-        res.setHeader('Cache-Control', 'public, max-age=31536000');
-        res.setHeader('Expires', new Date(Date.now() + 31536000000).toUTCString());
-        res.setHeader('Last-Modified', new Date().toUTCString());
+        const imageBuffer = await imageResponse.arrayBuffer(); 
         imageCache[url] = Buffer.from(imageBuffer);
         res.send(Buffer.from(imageBuffer));
     } catch (error) {
