@@ -72,15 +72,7 @@ app.get('/playlist/:playlist', async (req, res) => {
     const { playlist } = req.params; 
     function handleVideos(videos){
         return videos.map((video) => { 
-            video.title = video.title.replace(/\[.*\]/, '').replace(/\(.*\)/, '');
-        // split ft. or ft or feat or featuring
-        if(video.title.includes('ft.')){
-            video.title = video.title.split('ft.')[0];
-        }
-        // splice long titles
-        if(video.title.length > 50){
-            video.title = video.title.slice(0, 50);
-        }
+            console.log(video)
             let data = {
                 url:  `${urls.main}/stream?url=${`https://www.youtube.com/watch?v=${video.videoId}`} `,
                 title: video.title,
@@ -124,6 +116,14 @@ app.get('/playlist/:playlist', async (req, res) => {
             cachedResults['blues'] = handleVideos(rhythm.videos);
             res.json(handleVideos(rhythm.videos));
             break;
+        case '4':
+            // pop
+            if(cachedResults['pop']){
+                return res.json(cachedResults['pop']);
+            }
+            const pop = await yts({ listId: 'PLMC9KNkIncKtPzgY-5rmhvj7fax8fdxoj'})
+            cachedResults['pop'] = handleVideos(pop.videos);
+            res.json(handleVideos(pop.videos));
     }
 })
 // Endpoint to serve image
