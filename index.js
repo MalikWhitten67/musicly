@@ -15,12 +15,72 @@ let imageCache = {};
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-  
+  let registeredArtists = [
+    'lil baby',
+    'babyface e',
+    'skillababy',
+    'bossman dlow',
+    'french montana',
+    'lil wayne',
+    'lil durk',
+    'lil tjay',
+    'lil uzi vert',
+    'lil tecca',
+    'lil nas x',
+    'lil mosey',
+    'lil skies',
+    'lil yachty',
+    'luh tyler',
+    'lil peep',
+    'lil baby',
+    'lyricle lemonade',
+    'playboy carti',
+    'drake',
+    'sheck wes',
+    'travis scott',
+    'jid',
+    'ski mask slump god',
+    'juice wrld',
+    'logic',
+    'ynw melly',
+    'ynw bslime',
+    'youngboy never broke again',
+    'nba youngboy',
+    'young thug',
+    'quavo',
+    'offset',
+    'takeoff',
+    'lil pump',
+    'lil keed',
+    'cardi b',
+    'ken carson',
+    'destroy lonely',
+    'lil rt',
+    'lil mabu',
+    'trippie redd',
+    'ddg',
+    'lucki',
+    'so faygo',
+    'lil xan',
+    'lil tracy',
+    'gunna',
+    'future',
+    'chris brown',
+    'megan thee stallion',
+]
 app.get('/playlist/:playlist', async (req, res) => {
     const { playlist } = req.params; 
     function handleVideos(videos){
         return videos.map((video) => { 
-            console.log(video)
+            video.title = video.title.replace(/\[.*\]/, '').replace(/\(.*\)/, '');
+        // split ft. or ft or feat or featuring
+        if(video.title.includes('ft.')){
+            video.title = video.title.split('ft.')[0];
+        }
+        // splice long titles
+        if(video.title.length > 50){
+            video.title = video.title.slice(0, 50);
+        }
             let data = {
                 url:  `${urls.main}/stream?url=${`https://www.youtube.com/watch?v=${video.videoId}`} `,
                 title: video.title,
@@ -182,7 +242,7 @@ app.get('/search', async (req, res) => {
     // exclude non-registered artists
         let artist = video.author.name.toLowerCase();
         if(!registeredArtists.includes(artist)){
-             console.log('poor selection')
+             return
         }
         
         let data = {
