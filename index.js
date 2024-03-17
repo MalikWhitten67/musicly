@@ -26,7 +26,7 @@ app.use(express.urlencoded({ extended: true }));
                     url:  `${urls.main}/stream?url=${`https://www.youtube.com/watch?v=${video.videoId}`} `,
                     title: video.title,
                     id: video.videoId, 
-                    thumbnail: `${urls.main}/serveImage?url=${video.thumbnail.replace('hqdefault.jpg','hq720.jpg')
+                    thumbnail: `${urls.main}/serveImage?url=${video.thumbnail.replace('hqdefault', 'maxresdefault')}`,
                     description: video.description,
                     duration: video.timestamp,
                     views: video.views,
@@ -167,7 +167,7 @@ app.get('/search', async (req, res) => {
             url:  `${urls.main}/stream?url=${video.url}`,
             title: video.title,
             id: video.videoId, 
-            thumbnail: `${urls.main}/serveImage?url=${video.image}`,
+            thumbnail: `${urls.main}/serveImage?url=${video.image.replace('hqdefault', 'maxresdefault')}`,
             description: video.description,
             duration: video.timestamp,
             views: video.views,
