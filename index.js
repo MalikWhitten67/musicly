@@ -42,6 +42,8 @@ app.use(express.urlencoded({ extended: true }));
     'ski mask slump god',
     'juice wrld',
     'logic',
+      'tupac',
+      'latto',
     'ynw melly',
     'ynw bslime',
     'youngboy never broke again',
@@ -124,6 +126,15 @@ app.get('/playlist/:playlist', async (req, res) => {
             const pop = await yts({ listId: 'PLMC9KNkIncKtPzgY-5rmhvj7fax8fdxoj'})
             cachedResults['pop'] = handleVideos(pop.videos);
             res.json(handleVideos(pop.videos));
+            break;
+        case '5':
+            if(cachedResults['hiphop90s']){
+                return res.json(cachedResults['hiphop90s']);
+            }
+            const hiphop90s = await yts({ listId: 'PLxA687tYuMWgEVasBziZoZ1Bk7JLnu-Rf'})
+            cachedResults['hiphop90s'] = handleVideos(hiphop90s.videos);
+            res.json(handleVideos(hiphop90s.videos));
+            break;
     }
 })
 // Endpoint to serve image
