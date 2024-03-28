@@ -9,7 +9,7 @@ import yts from 'yt-search'
 const app = express();
 
 const urls = {
-    main: 'https://musiclyapp.vercel.app'
+    main: 'https://musicly-washington.vercel.app'
 }
 let imageCache = {};
 app.use(cors());
