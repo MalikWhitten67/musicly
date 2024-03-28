@@ -229,7 +229,7 @@ app.get('/stream', async (req, res) => {
 
 app.use(express.static('./')); 
 app.get('/', (req,res) => {
-    res.json({timestamp:Date.now()})
+    res.json({timestamp:Date.now(), 'Location':'Washington DC USA East'})
 })
  
  
