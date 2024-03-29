@@ -222,10 +222,11 @@ app.get('/stream', async (req, res) => {
         const audio =   ytdl.filterFormats(videoInfo.formats, 'videoandaudio').find((format) => format.container === 'mp4');
         res.setHeader('Content-Type', 'audio/mpeg');
         res.setHeader('Content-Disposition', `attachment; filename="${videoInfo.videoDetails.title}.mp3"`); 
-        res.setHeader('Accept-Ranges', 'bytes');
+        res.setHeader('Accept-Ranges', 'bytes'); 
+        res.setHeader('Connection', 'keep-alive');
         res.redirect(audio.url); 
         } catch (error) {  
-           res.redirect(audio.url)
+          res.status(400).send('Invalid URL'); 
         }
 
    
