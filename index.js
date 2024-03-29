@@ -76,6 +76,7 @@ app.get('/playlist/:playlist', async (req, res) => {
     const { playlist } = req.params; 
     let { filter, page } = req.query;
 
+    const expirationTime = new Date(Date.now() + 3600 * 1000); // Cache for 1 hour
     res.setHeader('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
     res.setHeader('Expires', expirationTime.toUTCString()); // Absolute expiration time
 
@@ -222,8 +223,10 @@ app.get('/stream', async (req, res) => {
         res.setHeader('Content-Disposition', `attachment; filename="${videoInfo.videoDetails.title}.mp3"`); 
         res.setHeader('Accept-Ranges', 'bytes'); 
         res.setHeader('Connection', 'keep-alive'); 
-    res.setHeader('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
-    res.setHeader('Expires', expirationTime.toUTCString()); // Absolute expiration time
+        
+        const expirationTime = new Date(Date.now() + 3600 * 1000); // Cache for 1 hour
+       res.setHeader('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
+       res.setHeader('Expires', expirationTime.toUTCString()); // Absolute expiration time
 
         res.redirect(audio.url); 
         } catch (error) {  
