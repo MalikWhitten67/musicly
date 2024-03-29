@@ -157,6 +157,10 @@ app.get('/playlist/:playlist', async (req, res) => {
         result = result.slice(start, end);
     }
  
+    res.setHeader('Access-Control-Allow-Origin', '*'); 
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+    res.setHeader('Expires', new Date(Date.now() + 3600000).toUTCString());
+    res.setHeader('Last-Modified', new Date().toUTCString());
     res.json(result);
 });
 
