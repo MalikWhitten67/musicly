@@ -305,6 +305,10 @@ app.get('/search', async (req, res) => {
     // remove nulls
     results.videos = results.videos.filter((video) => video !== undefined);
     cachedResults[query.toLowerCase()] = results.videos;
+    const expirationTime = new Date(Date.now() + 3600 * 1000); // Cache for 1 hour
+    res.setHeader('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
+    res.setHeader('Expires', expirationTime.toUTCString()); // Absolute expiration time
+
     res.json(results.videos);
 })
 app.listen(3000, () => {
