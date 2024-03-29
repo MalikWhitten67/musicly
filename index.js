@@ -76,6 +76,9 @@ app.get('/playlist/:playlist', async (req, res) => {
     const { playlist } = req.params; 
     let { filter, page } = req.query;
 
+    res.setHeader('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
+    res.setHeader('Expires', expirationTime.toUTCString()); // Absolute expiration time
+
     async function handleVideos(videos){
         const videoData = await Promise.all(videos.map(async (video) => { 
             return {
@@ -218,7 +221,10 @@ app.get('/stream', async (req, res) => {
         res.setHeader('Content-Type', 'audio/mpeg');
         res.setHeader('Content-Disposition', `attachment; filename="${videoInfo.videoDetails.title}.mp3"`); 
         res.setHeader('Accept-Ranges', 'bytes'); 
-        res.setHeader('Connection', 'keep-alive');
+        res.setHeader('Connection', 'keep-alive'); 
+    res.setHeader('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
+    res.setHeader('Expires', expirationTime.toUTCString()); // Absolute expiration time
+
         res.redirect(audio.url); 
         } catch (error) {  
           res.status(400).send('Invalid URL'); 
