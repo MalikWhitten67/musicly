@@ -248,7 +248,7 @@ app.get('/metadata', async (req, res) => {
      try {
         const { title, artist } = req.query;
     const options = {
-        apiKey: process.env.api_key
+        apiKey: process.env.api_key,
         ...(title && { title }),
         artist : artist,
         optimizeQuery: true
