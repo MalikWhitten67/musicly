@@ -2,6 +2,7 @@ import ytdl from 'ytdl-core';
 import express from 'express'; 
 import ffmpeg from 'ffmpeg';
 import cors from 'cors';
+import { getLyrics, getSong } from 'genius-lyrics-api';
 const cachedResults = {};
 import path from 'path';
 import fs from 'fs';
@@ -9,7 +10,7 @@ import yts from 'yt-search'
 const app = express();
 
 const urls = {
-    main: 'https://musicly-washington.vercel.app'
+    main: 'https://musiclyapp.vercel.app'
 }
 let imageCache = {};
 app.use(cors());
@@ -75,10 +76,6 @@ app.use(express.urlencoded({ extended: true }));
 app.get('/playlist/:playlist', async (req, res) => {
     const { playlist } = req.params; 
     let { filter, page } = req.query;
-
-    const expirationTime = new Date(Date.now() + 3600 * 1000); // Cache for 1 hour
-    res.setHeader('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
-    res.setHeader('Expires', expirationTime.toUTCString()); // Absolute expiration time
 
     async function handleVideos(videos){
         const videoData = await Promise.all(videos.map(async (video) => { 
@@ -159,7 +156,14 @@ app.get('/playlist/:playlist', async (req, res) => {
         let start = (page - 1) * filter;
         let end = page * filter;
         result = result.slice(start, end);
-    } 
+    }
+
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    // make their browser cache the response
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+    res.setHeader('Expires', new Date(Date.now() + 3600000).toUTCString());
+    res.setHeader('Last-Modified', new Date().toUTCString());
+ 
     res.json(result);
 });
 
@@ -221,16 +225,11 @@ app.get('/stream', async (req, res) => {
         const audio =   ytdl.filterFormats(videoInfo.formats, 'videoandaudio').find((format) => format.container === 'mp4');
         res.setHeader('Content-Type', 'audio/mpeg');
         res.setHeader('Content-Disposition', `attachment; filename="${videoInfo.videoDetails.title}.mp3"`); 
-        res.setHeader('Accept-Ranges', 'bytes'); 
-        res.setHeader('Connection', 'keep-alive'); 
-        
-        const expirationTime = new Date(Date.now() + 3600 * 1000); // Cache for 1 hour
-       res.setHeader('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
-       res.setHeader('Expires', expirationTime.toUTCString()); // Absolute expiration time
-
+        res.setHeader('Accept-Ranges', 'bytes');
+        res.setHeader('Connection', 'keep-alive');
         res.redirect(audio.url); 
         } catch (error) {  
-          res.status(400).send('Invalid URL'); 
+        res.status(400).send('Invalid URL');
         }
 
    
@@ -238,30 +237,29 @@ app.get('/stream', async (req, res) => {
 
 app.use(express.static('./')); 
 app.get('/', (req,res) => {
-    res.json({timestamp:Date.now(), 'Location':'Washington DC USA East'})
+    res.json({timestamp:Date.now()})
 })
  
  
 app.get('/', (req, res) => {
     res.json({ message: 'Hello!'});
+}) 
+app.get('/metadata', async (req, res) => {
+     try {
+        const { title, artist } = req.query;
+    const options = {
+        apiKey: process.env.api_key
+        ...(title && { title }),
+        artist : artist,
+        optimizeQuery: true
+    };
+    const metadata = await getSong(options);
+    res.json(metadata);
+     } catch (error) {
+        console.log(error)
+     }
 })
 
-app.get('/metadata', async (req, res) => {
-    let { url } = req.query;
-    if (!url) {
-        return res.status(400).send('URL is required');
-    }
-     const page = await context.newPage();
-     page.goto(url);
-     await page.waitForEvent('load');
-     const title = await page.title();
-     const description = await page.$eval('meta[name="description"]', el => el.content);
-     const image = await page.$eval('meta[property="og:image"]', el => el.content);
-     const keywords = await page.$eval('meta[name="keywords"]', el => el.content);
-     const ogTitle = await page.$eval('meta[property="og:title"]', el => el.content);
-     await page.close();
-     res.json({ title, description  , image, keywords , ogTitle });
-})
 
  
 app.get('/search', async (req, res) => {
@@ -314,10 +312,6 @@ app.get('/search', async (req, res) => {
     // remove nulls
     results.videos = results.videos.filter((video) => video !== undefined);
     cachedResults[query.toLowerCase()] = results.videos;
-    const expirationTime = new Date(Date.now() + 3600 * 1000); // Cache for 1 hour
-    res.setHeader('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
-    res.setHeader('Expires', expirationTime.toUTCString()); // Absolute expiration time
-
     res.json(results.videos);
 })
 app.listen(3000, () => {
