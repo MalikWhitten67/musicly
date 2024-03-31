@@ -283,10 +283,15 @@ app.get('/search',  async (req, res) => {
             try {
                 let videoadata  = await ytdl.getInfo(video.url) 
                 if(videoadata){ 
+                    let related = []
                     video.relatedVideos = videoadata.related_videos.map(async (video) => {  
                         video.url = `${urls.main}/stream?url=https://www.youtube.com/watch?v=${video.id}`;
-                        video.thumbnail = `${urls.main}/serveImage?url=${video.thumbnails[0].url}`;
+                        video.thumbnail = `${urls.main}/serveImage?url=${video.thumbnails[0].url}`; 
+                        related.push(video); 
                         return video;
+                    });
+                    video.relatedVideos.map(async (video) => {
+                        video.relatedVideos = related;
                     });
                 }
                 video.relatedVideos = await Promise.all(video.relatedVideos);
@@ -301,6 +306,7 @@ app.get('/search',  async (req, res) => {
             if(video.title.length > 50){
                 video.title = video.title.slice(0, 50);
             } 
+            video.lyrics =  await getLyrics({ apiKey: process.env.api_key, title: video.title, artist: video.author.name, optimizeQuery: true });
             let artist = video.author.name.toLowerCase();
             let isRegistered  = registeredArtists.includes(artist);
             // if name registered then dont return any other artist
@@ -317,6 +323,7 @@ app.get('/search',  async (req, res) => {
                 description: video.description,
                 duration: video.duration.seconds,
                 views: video.views,
+                lyrics: video.lyrics,
                 age: video.ago,
                 keywords: video.description.split('#').map((keyword) => keyword.split(' ')[0]),
                 artist: video.author.name,
