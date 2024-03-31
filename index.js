@@ -3,6 +3,7 @@ import express from 'express';
 import ffmpeg from 'ffmpeg';
 import cors from 'cors';
 import { getLyrics, getSong } from 'genius-lyrics-api';
+import zlib from 'zlib'
 const cachedResults = {};
 import path from 'path';
 import fs from 'fs';
@@ -226,18 +227,19 @@ app.get('/stream', async (req, res) => {
         res.setHeader('Content-Type', 'audio/mpeg');
         res.setHeader('Content-Disposition', `attachment; filename="${videoInfo.videoDetails.title}.mp3"`); 
         res.setHeader('Accept-Ranges', 'bytes');
-        res.setHeader('Connection', 'keep-alive');
+        res.setHeader('Cache-Control', 'public, max-age=31536000');
+        res.setHeader('Expires', new Date(Date.now() + 31536000000).toUTCString());
+        res.setHeader('Last-Modified', new Date().toUTCString());
         res.redirect(audio.url); 
         } catch (error) {  
-        res.status(400).send('Invalid URL');
+           res.redirect(audio.url)
         }
 
-   
-});
-
+})
+    
 app.use(express.static('./')); 
 app.get('/', (req,res) => {
-    res.json({timestamp:Date.now(), location:'Washington DC Us East'})
+    res.json({timestamp:Date.now(), Location:'Sao Paulo Brazil East'})
 })
  
  
@@ -262,57 +264,100 @@ app.get('/metadata', async (req, res) => {
 
 
  
-app.get('/search', async (req, res) => {
+app.get('/search',  async (req, res) => {
+  
     const { query } = req.query;
     if (!query) {
         return res.status(400).send('Query is required');
     } 
+   
     if (Object.keys(cachedResults).includes(query.toLowerCase())) {
         let matching = Object.keys(cachedResults).filter((key) => key.includes(query.toLowerCase()));
         let results = matching.map((key) => cachedResults[key]);
         return res.json([].concat(...results));
     }
-    const results = await yts(query);  
-    results.videos = results.videos.map((video) => { 
-        // remove video if too long
-        if(video.timestamp.includes('hour') || video.timestamp.includes('day') || video.timestamp.includes('week') || video.timestamp.includes('month') || video.timestamp.includes('year')){
-            return;
+    async function getRelatedVideos(videoUrl){
+        try {
+            let video = ytdl.getInfo(videoUrl);
+            let related = [];
+            video.related_videos.map((video) => {
+                video.url = `${urls.main}/stream?url=https://www.youtube.com/watch?v=${video.id}`;
+                video.thumbnail = `${urls.main}/serveImage?url=${video.thumbnails[0].url}`;
+                related.push(video);
+            });
+            return related;
+        } catch (error) {
+            return [];
         }
-        video.title = video.title.replace(/\[.*\]/, '').replace(/\(.*\)/, '');
-        // split ft. or ft or feat or featuring
-        if(video.title.includes('ft.')){
-            video.title = video.title.split('ft.')[0];
-        }
-        // splice long titles
-        if(video.title.length > 50){
-            video.title = video.title.slice(0, 50);
-        }
-    // exclude non-registered artists
-        let artist = video.author.name.toLowerCase();
-        let isRegistered  = registeredArtists.includes(artist);
-        // if name registered then dont return any other artist
-        if(!isRegistered && registeredArtists.includes(query)){
-            console.log('not registered', artist, query.toLowerCase());
-            return;
-        }
-        let data = {
-            url:  `${urls.main}/stream?url=${video.url}`,
-            title: video.title,
-            id: video.videoId, 
-            thumbnail: `${urls.main}/serveImage?url=${video.image}`,
-            description: video.description,
-            duration: video.duration.seconds,
-            views: video.views,
-            age: video.ago,
-            artist: video.author.name,
-            artistUrl: video.author.url
-        } 
-        return data;
-    })
-    // remove nulls
-    results.videos = results.videos.filter((video) => video !== undefined);
-    cachedResults[query.toLowerCase()] = results.videos;
-    res.json(results.videos);
+    }
+                
+     try { 
+        let youtubeData = await yts(query)
+        let results = youtubeData.videos.map(async (video) => {    
+            
+            try {
+                let videoadata  = await ytdl.getInfo(video.url) 
+                if(videoadata){  
+                    video.relatedVideos = videoadata.related_videos.map(async (video) => {  
+                        video.url = `${urls.main}/stream?url=https://www.youtube.com/watch?v=${video.id}`;
+                        video.thumbnail = `${urls.main}/serveImage?url=${video.thumbnails[0].url}`; 
+                        video.relatedVideos = await getRelatedVideos(`https://www.youtube.com/watch?v=${video.id}`);
+                        return video;
+                    }); 
+                }
+                video.relatedVideos = await Promise.all(video.relatedVideos);
+            } catch (error) {
+                
+            } 
+            if(video.title.includes('ft.')){
+                video.title = video.title.split('ft.')[0];
+            }
+            video.keywords = video.description.split('#').map((keyword) => keyword.split(' ')[0]);
+            // splice long titles
+            if(video.title.length > 50){
+                video.title = video.title.slice(0, 50);
+            } 
+            video.lyrics =  await getLyrics({ apiKey: process.env.api_key, title: video.title, artist: video.author.name, optimizeQuery: true });
+            let artist = video.author.name.toLowerCase();
+            let isRegistered  = registeredArtists.includes(artist);
+            // if name registered then dont return any other artist
+            if(!isRegistered && registeredArtists.includes(query)){
+                console.log('not registered', artist, query.toLowerCase());
+                return;
+            }
+            let data = {
+                url:  `${urls.main}/stream?url=${video.url}`,
+                title: video.title,
+                id: video.videoId, 
+                relatedVideos: video.relatedVideos,
+                thumbnail: `${urls.main}/serveImage?url=${video.image}`,
+                description: video.description,
+                duration: video.duration.seconds,
+                views: video.views,
+                lyrics: video.lyrics,
+                age: video.ago,
+                keywords: video.description.split('#').map((keyword) => keyword.split(' ')[0]),
+                artist: video.author.name,
+                artistUrl: video.author.url
+            } 
+            return data; 
+        }) 
+        
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+        res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+        res.setHeader('Cache-Control', 'public, max-age=3600');
+        res.setHeader('Expires', new Date(Date.now() + 3600000).toUTCString());
+        // filter out nulls
+        let p = await Promise.all(results)
+        // filter out nulls
+        let filtered = p.filter((video) => video !== undefined);
+        cachedResults[query.toLowerCase()] = filtered;
+        res.json(filtered);
+    }
+        catch(errr){
+            console.log(errr)
+        }    
 })
 app.listen(3000, () => {
     console.log('Server is running on port 3000');
