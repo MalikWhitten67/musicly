@@ -296,6 +296,8 @@ app.get('/search',  async (req, res) => {
             if(video.title.length > 50){
                 video.title = video.title.slice(0, 50);
             }
+            
+            video.url = `${urls.main}/stream?url=${video.url}`;
             return video;
         })
         // only allow https://musicly.rf.gd to access this endpoint 
