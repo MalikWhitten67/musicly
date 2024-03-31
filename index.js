@@ -300,8 +300,7 @@ app.get('/search',  async (req, res) => {
                 if(videoadata){  
                     video.relatedVideos = videoadata.related_videos.map(async (video) => {  
                         video.url = `${urls.main}/stream?url=https://www.youtube.com/watch?v=${video.id}`;
-                        video.thumbnail = `${urls.main}/serveImage?url=${video.thumbnails[0].url}`; 
-                        video.relatedVideos = await getRelatedVideos(`https://www.youtube.com/watch?v=${video.id}`);
+                        video.thumbnail = `${urls.main}/serveImage?url=${video.thumbnails[0].url}`;  
                         return video;
                     }); 
                 }
