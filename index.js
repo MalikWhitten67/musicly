@@ -295,12 +295,28 @@ app.get('/search',  async (req, res) => {
             // splice long titles
             if(video.title.length > 50){
                 video.title = video.title.slice(0, 50);
+            } 
+            let artist = video.author.name.toLowerCase();
+            let isRegistered  = registeredArtists.includes(artist);
+            // if name registered then dont return any other artist
+            if(!isRegistered && registeredArtists.includes(query)){
+                console.log('not registered', artist, query.toLowerCase());
+                return;
             }
-            
-            video.url = `${urls.main}/stream?url=${video.url}`;   
-            video.author = video.author.name; 
-            video.thumbnail = `${urls.main}/serveImage?url=${video.image}`;
-            return video;
+            let data = {
+                url:  `${urls.main}/stream?url=${video.url}`,
+                title: video.title,
+                id: video.videoId, 
+                relatedVideos: video.relatedVideos,
+                thumbnail: `${urls.main}/serveImage?url=${video.image}`,
+                description: video.description,
+                duration: video.duration.seconds,
+                views: video.views,
+                age: video.ago,
+                artist: video.author.name,
+                artistUrl: video.author.url
+            } 
+            return data; 
         })
         // only allow https://musicly.rf.gd to access this endpoint 
         
