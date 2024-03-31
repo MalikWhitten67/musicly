@@ -283,6 +283,10 @@ app.get('/search',  async (req, res) => {
             video.related_videos.map((video) => {
                 video.url = `${urls.main}/stream?url=https://www.youtube.com/watch?v=${video.id}`;
                 video.thumbnail = `${urls.main}/serveImage?url=${video.thumbnails[0].url}`;
+                video.duration = video.length_seconds;
+                video.views = video.view_count;
+                video.age = video.ago;
+                video.artist = video.author.name;
                 related.push(video);
             });
             return related;
@@ -297,11 +301,14 @@ app.get('/search',  async (req, res) => {
             
             try {
                 let videoadata  = await ytdl.getInfo(video.url) 
-                if(videoadata){  
+                if(videoadata){   
                     video.relatedVideos = videoadata.related_videos.map(async (video) => {  
                         video.url = `${urls.main}/stream?url=https://www.youtube.com/watch?v=${video.id}`;
-                        video.thumbnail = `${urls.main}/serveImage?url=${video.thumbnails[0].url}`; 
-                        video.relatedVideos = await getRelatedVideos(`https://www.youtube.com/watch?v=${video.id}`);
+                        video.thumbnail = `${urls.main}/serveImage?url=${video.thumbnails[0].url}`;  
+                        video.duration = video.length_seconds;
+                        video.views = parseInt(video.view_count);
+                        video.age = video.ago;
+                        video.artist = video.author.name;
                         return video;
                     }); 
                 }
@@ -316,8 +323,7 @@ app.get('/search',  async (req, res) => {
             // splice long titles
             if(video.title.length > 50){
                 video.title = video.title.slice(0, 50);
-            } 
-            video.lyrics =  await getLyrics({ apiKey: process.env.api_key, title: video.title, artist: video.author.name, optimizeQuery: true });
+            }  
             let artist = video.author.name.toLowerCase();
             let isRegistered  = registeredArtists.includes(artist);
             // if name registered then dont return any other artist
@@ -333,8 +339,7 @@ app.get('/search',  async (req, res) => {
                 thumbnail: `${urls.main}/serveImage?url=${video.image}`,
                 description: video.description,
                 duration: video.duration.seconds,
-                views: video.views,
-                lyrics: video.lyrics,
+                views: video.views, 
                 age: video.ago,
                 keywords: video.description.split('#').map((keyword) => keyword.split(' ')[0]),
                 artist: video.author.name,
