@@ -214,31 +214,30 @@ app.get('/serveImage', async (req, res) => {
 
     }
 });
-app.get('/stream',   async (req, res) => {
+app.get('/stream',   async (req, res) => {  
     res.setHeader('Access-Control-Allow-Origin' , '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
     res.setHeader('Access-Control-Allow-Headers' , 'X-Requested-With,content-type');
     res.setHeader('Access-Control-Allow-Credentials', true);
     try {
         const videoUrl = req.query.url; 
-        const audio = ytdl(videoUrl, {filter:'audio', quality:'highestaudio'}); 
+        const audio = ytdl(videoUrl, {filter:'audioandvideo', quality:'highestaudio'});
         const info = await ytdl.getInfo(videoUrl);
         res.setHeader('Content-Type', 'audio/mpeg');
         res.setHeader('Content-Disposition', `attachment; filename="${info.videoDetails.title}.mp3"`);
         res.setHeader('Accept-Ranges', 'bytes');
-        res.setHeader('Connection', 'keep-alive');
-        res.setHeader('Cache-Control', 'no-cache'); 
+        res.setHeader('Connection', 'keep-alive');  
+        // cache songs
+        res.setHeader('Cache-Control', 'public, max-age=31536000');
+        res.setHeader('Expires', new Date(Date.now() + 31536000000).toUTCString());
+        res.setHeader('Last-Modified', new Date().toUTCString());
         let virtualFile =  []
         audio.on('data', (chunk) => {
             virtualFile.push(chunk);
         });
         audio.on('end', () => {  
-            let compressed = zlib.gzipSync(Buffer.concat(virtualFile)); 
-            res.setHeader('Content-Encoding', 'gzip');
-            res.setHeader('Content-Length', compressed.length);
-            res.setHeader('Cache-Control', 'public, max-age=31536000');
-            res.setHeader('Expires', new Date(Date.now() + 31536000000).toUTCString());
-            res.send(compressed);
+            let buffer = Buffer.concat(virtualFile);
+            res.send(buffer);
         })
         audio.on('error', (error) => {
             console.log(error)
@@ -251,7 +250,6 @@ app.get('/stream',   async (req, res) => {
 
    
 });
-
 app.use(express.static('./')); 
 app.get('/', (req,res) => {
     res.json({timestamp:Date.now(), Location:'Washington US East'})
