@@ -297,7 +297,8 @@ app.get('/search',  async (req, res) => {
                 video.title = video.title.slice(0, 50);
             }
             
-            video.url = `${urls.main}/stream?url=${video.url}`;  
+            video.url = `${urls.main}/stream?url=${video.url}`;   
+            video.author = video.author.name; 
             video.thumbnail = `${urls.main}/serveImage?url=${video.image}`;
             return video;
         })
