@@ -214,42 +214,29 @@ app.get('/serveImage', async (req, res) => {
 
     }
 });
-app.get('/stream',   async (req, res) => {  
-    res.setHeader('Access-Control-Allow-Origin' , '*');
+app.get('/stream', async (req, res) => {
+    res.setHeader('Access-Control-Allow-Origin', '*') 
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
-    res.setHeader('Access-Control-Allow-Headers' , 'X-Requested-With,content-type');
-    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
     try {
-        const videoUrl = req.query.url; 
-        const audio = ytdl(videoUrl, {filter:'audioandvideo', quality:'highestaudio'});
-        const info = await ytdl.getInfo(videoUrl);
+        const videoUrl = req.query.url;
+        const videoInfo = await ytdl.getInfo(videoUrl);
+        // only audio
+        const format = ytdl.chooseFormat(videoInfo.formats, { quality: 'highestaudio' });
+        const audio =   ytdl.filterFormats(videoInfo.formats, 'videoandaudio').find((format) => format.container === 'mp4');
         res.setHeader('Content-Type', 'audio/mpeg');
-        res.setHeader('Content-Disposition', `attachment; filename="${info.videoDetails.title}.mp3"`);
+        res.setHeader('Content-Disposition', `attachment; filename="${videoInfo.videoDetails.title}.mp3"`); 
         res.setHeader('Accept-Ranges', 'bytes');
-        res.setHeader('Connection', 'keep-alive');  
-        // cache songs
         res.setHeader('Cache-Control', 'public, max-age=31536000');
         res.setHeader('Expires', new Date(Date.now() + 31536000000).toUTCString());
         res.setHeader('Last-Modified', new Date().toUTCString());
-        let virtualFile =  []
-        audio.on('data', (chunk) => {
-            virtualFile.push(chunk);
-        });
-        audio.on('end', () => {  
-            let buffer = Buffer.concat(virtualFile);
-            res.send(zlib.gzipsync(buffer))
-        })
-        audio.on('error', (error) => {
-            console.log(error)
-            res.send(error);
-        });
-        } catch (error) {   
-            console.log(error)
-            res.send(error)
+        res.redirect(audio.url); 
+        } catch (error) {  
+           res.redirect(audio.url)
         }
 
-   
-});
+})
+    
 app.use(express.static('./')); 
 app.get('/', (req,res) => {
     res.json({timestamp:Date.now(), Location:'Washington US East'})
