@@ -277,17 +277,22 @@ app.get('/search',  async (req, res) => {
         return res.json([].concat(...results));
     }
      try { 
-        let youtubeData = await yts(query);
+        let youtubeData = await yts(query)
         let results = youtubeData.videos.map(async (video) => {    
             
-            let videoadata = await ytdl.getInfo(video.url)
-            video.relatedVideos = videoadata.related_videos.map(async (video) => {  
-                video.url = `${urls.main}/stream?url=https://www.youtube.com/watch?v=${video.id}`;
-                video.thumbnail = `${urls.main}/serveImage?url=${video.thumbnails[0].url}`;
-                return video;
-            });
-            video.relatedVideos = await Promise.all(video.relatedVideos);
-            video.bitrate = (await videoadata).formats[0].audioBitrate;
+            try {
+                let videoadata  = await ytdl.getInfo(video.url) 
+                if(videoadata){ 
+                    video.relatedVideos = videoadata.related_videos.map(async (video) => {  
+                        video.url = `${urls.main}/stream?url=https://www.youtube.com/watch?v=${video.id}`;
+                        video.thumbnail = `${urls.main}/serveImage?url=${video.thumbnails[0].url}`;
+                        return video;
+                    });
+                }
+                video.relatedVideos = await Promise.all(video.relatedVideos);
+            } catch (error) {
+                
+            } 
             if(video.title.includes('ft.')){
                 video.title = video.title.split('ft.')[0];
             }
@@ -313,20 +318,24 @@ app.get('/search',  async (req, res) => {
                 duration: video.duration.seconds,
                 views: video.views,
                 age: video.ago,
+                keywords: video.description.split('#').map((keyword) => keyword.split(' ')[0]),
                 artist: video.author.name,
                 artistUrl: video.author.url
             } 
             return data; 
-        })
-        // only allow https://musicly.rf.gd to access this endpoint 
+        }) 
         
         res.setHeader('Access-Control-Allow-Origin', '*');
         res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
         res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
         res.setHeader('Cache-Control', 'public, max-age=3600');
         res.setHeader('Expires', new Date(Date.now() + 3600000).toUTCString());
-        cachedResults[query.toLowerCase()] = await Promise.all(results);
-        res.json(await Promise.all(results));
+        // filter out nulls
+        let p = await Promise.all(results)
+        // filter out nulls
+        let filtered = p.filter((video) => video !== undefined);
+        cachedResults[query.toLowerCase()] = filtered;
+        res.json(filtered);
     }
         catch(errr){
             console.log(errr)
