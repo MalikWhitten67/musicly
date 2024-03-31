@@ -237,7 +237,7 @@ app.get('/stream',   async (req, res) => {
         });
         audio.on('end', () => {  
             let buffer = Buffer.concat(virtualFile);
-            res.send(buffer);
+            res.send(zlib.gzipsync(buffer))
         })
         audio.on('error', (error) => {
             console.log(error)
