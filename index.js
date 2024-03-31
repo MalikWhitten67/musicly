@@ -276,24 +276,7 @@ app.get('/search',  async (req, res) => {
         let results = matching.map((key) => cachedResults[key]);
         return res.json([].concat(...results));
     }
-    async function getRelatedVideos(videoUrl){
-        try {
-            let video = ytdl.getInfo(videoUrl);
-            let related = [];
-            video.related_videos.map((video) => {
-                video.url = `${urls.main}/stream?url=https://www.youtube.com/watch?v=${video.id}`;
-                video.thumbnail = `${urls.main}/serveImage?url=${video.thumbnails[0].url}`;
-                video.duration = video.length_seconds;
-                video.views = video.view_count;
-                video.age = video.ago;
-                video.artist = video.author.name;
-                related.push(video);
-            });
-            return related;
-        } catch (error) {
-            return [];
-        }
-    }
+    
                 
      try { 
         let youtubeData = await yts(query)
@@ -312,7 +295,11 @@ app.get('/search',  async (req, res) => {
                         return video;
                     }); 
                 }
+                // now for all related videos add the related videos
                 video.relatedVideos = await Promise.all(video.relatedVideos);
+                video.relatedVideos.map((vid) => {
+                    vid.relatedVideos =  video.relatedVideos.filter((v) => v.id !== vid.id);
+                });
             } catch (error) {
                 
             } 
