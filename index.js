@@ -296,10 +296,7 @@ app.get('/search',  async (req, res) => {
                     }); 
                 }
                 // now for all related videos add the related videos
-                video.relatedVideos = await Promise.all(video.relatedVideos);
-                video.relatedVideos.map((vid) => {
-                    vid.relatedVideos =  video.relatedVideos.filter((v) => v.id !== vid.id);
-                });
+                video.relatedVideos = await Promise.all(video.relatedVideos); 
             } catch (error) {
                 
             } 
