@@ -268,88 +268,29 @@ app.get('/metadata', async (req, res) => {
 
  
 app.get('/search',  async (req, res) => {
-  
-    const { query } = req.query;
-    if (!query) {
+    let { query } = req.query;
+    if(!query){
         return res.status(400).send('Query is required');
-    } 
-   
-    if (Object.keys(cachedResults).includes(query.toLowerCase())) {
-        let matching = Object.keys(cachedResults).filter((key) => key.includes(query.toLowerCase()));
-        let results = matching.map((key) => cachedResults[key]);
-        return res.json([].concat(...results));
     }
-    
-                
-     try { 
-        let youtubeData = await yts(query)
-        let results = youtubeData.videos.map(async (video) => {    
-            
-            try {
-                let videoadata  = await ytdl.getInfo(video.url) 
-                if(videoadata){   
-                    video.relatedVideos = videoadata.related_videos.map(async (video) => {  
-                        video.url = `${urls.main}/stream?url=https://www.youtube.com/watch?v=${video.id}`;
-                        video.thumbnail = `${urls.main}/serveImage?url=${video.thumbnails[0].url}`;  
-                        video.duration = video.length_seconds;
-                        video.views = parseInt(video.view_count);
-                        video.age = video.ago;
-                        video.artist = video.author.name;
-                        return video;
-                    }); 
-                }
-                // now for all related videos add the related videos
-                video.relatedVideos = await Promise.all(video.relatedVideos); 
-            } catch (error) {
-                
-            } 
-            if(video.title.includes('ft.')){
-                video.title = video.title.split('ft.')[0];
-            }
-            video.keywords = video.description.split('#').map((keyword) => keyword.split(' ')[0]);
-            // splice long titles
-            if(video.title.length > 50){
-                video.title = video.title.slice(0, 50);
-            }  
-            let artist = video.author.name.toLowerCase();
-            let isRegistered  = registeredArtists.includes(artist);
-            // if name registered then dont return any other artist
-            if(!isRegistered && registeredArtists.includes(query)){
-                console.log('not registered', artist, query.toLowerCase());
-                return;
-            }
-            let data = {
-                url:  `${urls.main}/stream?url=${video.url}`,
-                title: video.title,
-                id: video.videoId, 
-                relatedVideos: video.relatedVideos,
-                thumbnail: `${urls.main}/serveImage?url=${video.image}`,
-                description: video.description,
-                duration: video.duration.seconds,
-                views: video.views, 
-                age: video.ago,
-                keywords: video.description.split('#').map((keyword) => keyword.split(' ')[0]),
-                artist: video.author.name,
-                artistUrl: video.author.url
-            } 
-            return data; 
-        }) 
-        
-        res.setHeader('Access-Control-Allow-Origin', '*');
-        res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
-        res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-        res.setHeader('Cache-Control', 'public, max-age=3600');
-        res.setHeader('Expires', new Date(Date.now() + 3600000).toUTCString());
-        // filter out nulls
-        let p = await Promise.all(results)
-        // filter out nulls
-        let filtered = p.filter((video) => video !== undefined);
-        cachedResults[query.toLowerCase()] = filtered;
-        res.json(filtered);
+    if(cachedResults[query.toLowerCase()]){
+        return res.json(cachedResults[query.toLowerCase()]);
     }
-        catch(errr){
-            console.log(errr)
-        }    
+    let results = await yts(query);
+    results = results.videos.map((video) => { 
+        return {
+            url: `${urls.main}/stream?url=${video.url}`,
+            title: video.title,
+            id: video.videoId, 
+            thumbnail: `${urls.main}/serveImage?url=${video.image}`,
+            description: video.description,
+            duration: video.duration.seconds,
+            views: video.views,
+            age: video.ago,
+            artist: video.author.name,
+            artistUrl: video.author.url
+        }
+    });
+    res.json(results);
 })
 app.listen(3000, () => {
     console.log('Server is running on port 3000');
