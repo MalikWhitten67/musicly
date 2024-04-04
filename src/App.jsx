@@ -1,12 +1,8 @@
-import { useState } from 'react'
-import './App.css' 
-import './manifest.json'
+import { useState } from 'react' 
 import Home from './pages/home'
 import Library from './pages/library'
 
-function App() {
- 
-window.isFirstLoad = true;
+function App() { 
    let [route, setRoute] = useState('home')
    window.route = route
    window.navigate = (route) => {

@@ -76,7 +76,7 @@ export function SearchModal() {
       if (searchQ === "") return setSearchResults([]);
       try {
         const response = await fetch(
-          `https://musiclyapp.vercel.app/search?query=${searchQ}`
+          `${apiurl}/search?query=${searchQ}`
         );
         const data = await response.json();
         setSearchResults(data);

@@ -4,6 +4,7 @@ import { PlayListModal, SearchModal, SongModal } from "../modals";
 import { useEffect, useLayoutEffect, useState } from "react";
 import player from "../player";
 const cache  = {};
+window.apiurl = 'https://musicly-washington.vercel.app';
 const useAsyncState = (options = { wait: 0 }, ...urls) => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -22,9 +23,12 @@ const useAsyncState = (options = { wait: 0 }, ...urls) => {
           cache[url] = { data: response, timestamp: Date.now() };
         });
 
+        sessionStorage.setItem('cachedData', JSON.stringify(fetchedData));
+
         if (options.wait ){
           await new Promise((resolve) => setTimeout(resolve, options.wait));
         }
+        console.log(fetchedData)
         setData(fetchedData);
         setLoading(false);
       } catch (error) {
@@ -33,13 +37,30 @@ const useAsyncState = (options = { wait: 0 }, ...urls) => {
       }
     };
 
+    const getUserRegion = async () =>{
+       let region = await fetch('https://geolocation-db.com/json/').then(res => res.json()) 
+       window.country = region.country_code;
+       switch(true){
+        case  region.country_code == 'US':
+          window.apiurl = 'https://musicly-washington.vercel.app';
+          break;
+        case  region.country_code == 'GB' || region.country_code == 'UK':
+          window.apiurl = 'https://musicly-london.vercel.app';
+          break;
+        case region.country_code == 'ck' || region.country_code == 'bl':
+          window.apiurl = 'https://musicly-sao-paulo.vercel.app';
+          break;
+        default:
+          window.apiurl = 'https://musicly-washington.vercel.app';
+          break;
+       }
+    }
+    getUserRegion()
+
     // Check if any of the URLs exist in the cache and are still valid
-    const cachedData = urls.filter(
-      (url) => cache[url] && cache[url].timestamp + 300000 > Date.now()
-    );
-    if (cachedData.length === urls.length) {
-      // If all URLs are cached, set data from cache and return
-      setData(cachedData.map((url) => cache[url].data)); 
+    const cachedData = JSON.parse(sessionStorage.getItem("cachedData")) || [];
+    if (cachedData.length === urls.length) { 
+      setData(cachedData);
       setLoading(false)
     } else {
       // Fetch data for uncached URLs
@@ -52,11 +73,11 @@ window.isFirstLoad = true;
 export default function Home({route, setRoute}) {
   const { data, loading } = useAsyncState(
     { wait: 1000 },
-    "https://musiclyapp.vercel.app/playlist/1?page=1&filter=10",
-    "https://musiclyapp.vercel.app/playlist/2",
-    "https://musiclyapp.vercel.app/playlist/3", 
-    "https://musiclyapp.vercel.app/playlist/4", 
-    "https://musiclyapp.vercel.app/playlist/5",
+    `${apiurl}/playlist/1?page=1&filter=20`,
+    `${apiurl}/playlist/2`, 
+    `${apiurl}/playlist/3`,
+    `${apiurl}/playlist/4`,
+    `${apiurl}/playlist/5`
   );
   let [isPlaying, setIsPlaying] = useState(player.states.currentSong);
   useEffect(() => {
@@ -119,7 +140,7 @@ export default function Home({route, setRoute}) {
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(5, 1fr)",
+                gridTemplateColumns: "repeat(10, 1fr)",
                 gap: "5px",
                 marginTop: "20px",
                 overflowX: "scroll",
@@ -127,7 +148,7 @@ export default function Home({route, setRoute}) {
               }}
             >
               {data[0] && data[0].map(
-                (item) => (
+                (item) => ( 
                   (item.title = item.title.replace("(Official Music Video)")),
                   (item.title = item.title.replace("[").replace("(")),
                   (item.title = item.title.substring(0, 27)),
@@ -330,4 +351,9 @@ export default function Home({route, setRoute}) {
       <SongModal />
     </>
   );
+}
+
+
+window.onbeforeunload = function() {
+  sessionStorage.clear();
 }

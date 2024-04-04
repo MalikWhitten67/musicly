@@ -264,3 +264,8 @@ make a white slider
     background-color: #f7f7f7; /* Green background color */
     transition: width 0.3s ease; /* Smooth width transition */
 }
+
+::-webkit-scrollbar{
+  -webkit-appearance: none;
+  display: none;
+}
