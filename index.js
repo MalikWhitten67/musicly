@@ -235,7 +235,7 @@ app.get('/stream', async (req, res) => {
         res.setHeader('Last-Modified', new Date().toUTCString());
         res.redirect(audio.url); 
         } catch (error) {  
-           res.redirect(audio.url)
+          res.json(error)
         }
 
 })
