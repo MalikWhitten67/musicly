@@ -225,14 +225,14 @@ app.get('/stream', async (req, res) => {
         const videoInfo = await ytdl.getInfo(videoUrl);
         // only audio
         const format = ytdl.chooseFormat(videoInfo.formats, { quality: 'highestaudio' });
-        const audio =   ytdl.filterFormats(videoInfo.formats, 'videoandaudio').find((format) => format.container === 'mp4');
+        console.log(format.url) 
         res.setHeader('Content-Type', 'audio/mpeg');
         res.setHeader('Content-Disposition', `attachment; filename="${videoInfo.videoDetails.title}.mp3"`); 
         res.setHeader('Accept-Ranges', 'bytes');
         res.setHeader('Cache-Control', 'public, max-age=31536000');
         res.setHeader('Expires', new Date(Date.now() + 31536000000).toUTCString());
         res.setHeader('Last-Modified', new Date().toUTCString());
-        res.redirect(audio.url); 
+        res.redirect(format.url); 
 })
     
 app.use(express.static('./')); 
