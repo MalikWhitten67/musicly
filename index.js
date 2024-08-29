@@ -221,7 +221,6 @@ app.get('/stream', async (req, res) => {
     res.setHeader('Access-Control-Allow-Origin', '*') 
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
     res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-    try {
         const videoUrl = req.query.url;
         const videoInfo = await ytdl.getInfo(videoUrl);
         // only audio
@@ -234,10 +233,6 @@ app.get('/stream', async (req, res) => {
         res.setHeader('Expires', new Date(Date.now() + 31536000000).toUTCString());
         res.setHeader('Last-Modified', new Date().toUTCString());
         res.redirect(audio.url); 
-        } catch (error) {  
-          res.json(error)
-        }
-
 })
     
 app.use(express.static('./')); 
